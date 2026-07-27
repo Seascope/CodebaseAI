@@ -31,13 +31,17 @@ def read_root():
 def health_check():
     return {"status": "ok"}
 
+from indexer import index_repository
+
 @app.post("/upload")
 def upload_repo(request: RepoRequest):
     try:
         repo_name, parsed_files = clone_and_parse_repo(request.repo_url)
+        chunks_indexed = index_repository(repo_name, parsed_files)
         return {
-            "message": f"Successfully cloned and parsed {repo_name}",
-            "files_parsed": len(parsed_files)
+            "message": f"Successfully cloned, parsed, and indexed {repo_name}",
+            "files_parsed": len(parsed_files),
+            "chunks_indexed": chunks_indexed
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
