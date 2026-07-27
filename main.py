@@ -7,6 +7,12 @@ from repo_handler import clone_and_parse_repo
 class RepoRequest(BaseModel):
     repo_url: str
 
+class SearchRequest(BaseModel):
+    repo_name: str
+    query: str
+    top_k: int = 5
+
+
 import uvicorn
 
 app = FastAPI(
@@ -42,6 +48,18 @@ def upload_repo(request: RepoRequest):
             "message": f"Successfully cloned, parsed, and indexed {repo_name}",
             "files_parsed": len(parsed_files),
             "chunks_indexed": chunks_indexed
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from searcher import search_codebase
+
+@app.post("/search")
+def search_repo(request: SearchRequest):
+    try:
+        results = search_codebase(request.repo_name, request.query, request.top_k)
+        return {
+            "results": results
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
