@@ -20,6 +20,7 @@ def search_codebase(repo_name: str, query: str, top_k: int = 5):
     for doc in results:
         formatted_results.append({
             "source": doc.metadata.get("source", "Unknown"),
+            "line": doc.metadata.get("line", 1),
             "content": doc.page_content
         })
         

@@ -23,11 +23,19 @@ def index_repository(repo_name, parsed_files):
             continue
             
         chunks = text_splitter.split_text(content)
+        current_char = 0
         for i, chunk in enumerate(chunks):
+            # approximate line number
+            start_idx = content.find(chunk, current_char)
+            if start_idx == -1:
+                start_idx = current_char
+            line_num = content.count('\n', 0, start_idx) + 1
+            current_char = start_idx
+            
             docs.append(
                 Document(
                     page_content=chunk,
-                    metadata={"source": path, "chunk_id": i, "repo": repo_name}
+                    metadata={"source": path, "chunk_id": i, "repo": repo_name, "line": line_num}
                 )
             )
             

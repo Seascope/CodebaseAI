@@ -71,8 +71,10 @@ def ask_question(request: SearchRequest):
     try:
         results = search_codebase(request.repo_name, request.query, request.top_k)
         answer = get_answer(request.query, results)
+        citations = [{"source": r["source"], "line": r.get("line", 1)} for r in results]
         return {
-            "answer": answer
+            "answer": answer,
+            "citations": citations
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

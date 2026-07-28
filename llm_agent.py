@@ -14,7 +14,8 @@ def get_answer(question: str, context_chunks: list):
     
     context_str = ""
     for chunk in context_chunks:
-        context_str += f"File: {chunk['source']}\n{chunk['content']}\n\n"
+        line_info = f" (Line {chunk.get('line', 'Unknown')})" if 'line' in chunk else ""
+        context_str += f"File: {chunk['source']}{line_info}\n{chunk['content']}\n\n"
         
     chain = prompt | llm
     response = chain.invoke({"context": context_str, "question": question})
