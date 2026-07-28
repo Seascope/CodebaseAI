@@ -4,6 +4,8 @@ from pydantic import BaseModel
 import uvicorn
 from repo_handler import clone_and_parse_repo
 
+from typing import List, Dict
+
 class RepoRequest(BaseModel):
     repo_url: str
 
@@ -11,6 +13,7 @@ class SearchRequest(BaseModel):
     repo_name: str
     query: str
     top_k: int = 5
+    history: List[Dict[str, str]] = []
 
 
 import uvicorn
@@ -70,7 +73,7 @@ from llm_agent import get_answer
 def ask_question(request: SearchRequest):
     try:
         results = search_codebase(request.repo_name, request.query, request.top_k)
-        answer = get_answer(request.query, results)
+        answer = get_answer(request.query, results, request.history)
         citations = [{"source": r["source"], "line": r.get("line", 1)} for r in results]
         return {
             "answer": answer,
