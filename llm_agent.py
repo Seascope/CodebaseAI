@@ -27,3 +27,20 @@ def get_answer(question: str, context_chunks: list, history: list = None):
     
     response = llm.invoke(messages)
     return response.content
+
+def generate_repo_summary(context_chunks: list):
+    llm = ChatOllama(model="llama3")
+    
+    prompt = PromptTemplate.from_template(
+        "You are an AI Codebase Assistant. Generate a comprehensive README and architecture explanation for the following codebase based on the provided context.\n\n"
+        "Context:\n{context}\n\n"
+        "README and Architecture Summary:"
+    )
+    
+    context_str = ""
+    for chunk in context_chunks:
+        context_str += f"File: {chunk['source']}\n{chunk['content']}\n\n"
+        
+    chain = prompt | llm
+    response = chain.invoke({"context": context_str})
+    return response.content

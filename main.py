@@ -15,6 +15,9 @@ class SearchRequest(BaseModel):
     top_k: int = 5
     history: List[Dict[str, str]] = []
 
+class SummaryRequest(BaseModel):
+    repo_name: str
+
 
 import uvicorn
 
@@ -67,7 +70,7 @@ def search_repo(request: SearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-from llm_agent import get_answer
+from llm_agent import get_answer, generate_repo_summary
 
 @app.post("/ask")
 def ask_question(request: SearchRequest):
@@ -78,6 +81,17 @@ def ask_question(request: SearchRequest):
         return {
             "answer": answer,
             "citations": citations
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/summary")
+def get_summary(request: SummaryRequest):
+    try:
+        results = search_codebase(request.repo_name, "architecture setup main entry point", top_k=20)
+        summary = generate_repo_summary(results)
+        return {
+            "summary": summary
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
