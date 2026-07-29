@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Codebase Assistant</title>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border-color: #334155;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+        }
+
+        .card h3 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-family: inherit;
+            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: inherit;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .avatar.user { background-color: var(--accent); color: white; }
+        .avatar.assistant { background-color: var(--panel-bg); border: 1px solid var(--border-color); }
+
+        .bubble {
+            background-color: var(--panel-bg);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            line-height: 1.5;
+            box-shadow: var(--shadow);
+        }
+        
+        .bubble.user {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        
+        .citations {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .citations ul {
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+        
+        .citations li {
+            margin-bottom: 4px;
+        }
+
+        .input-area {
+            padding: 20px 40px;
+            background-color: var(--bg-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            margin-bottom: 0;
+            padding: 16px 20px;
+            border-radius: 24px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .input-wrapper button {
+            width: auto;
+            border-radius: 24px;
+            padding: 0 24px;
+        }
+        
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        pre {
+            background-color: #0d1117;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        code {
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        
+        .empty-state h2 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const App = () => {
+            const [repoUrl, setRepoUrl] = useState('');
+            const [repoName, setRepoName] = useState('');
+            const [isUploading, setIsUploading] = useState(false);
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [isAsking, setIsAsking] = useState(false);
+            const [summary, setSummary] = useState('');
+            const [messages, setMessages] = useState([]);
+            const [input, setInput] = useState('');
+            const [toast, setToast] = useState({ show: false, message: '', type: '' });
+            
+            const chatEndRef = useRef(null);
+            const API_URL = ''; // Same origin
+
+            const showToast = (message, type = 'success') => {
+                setToast({ show: true, message, type });
+                setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+            };
+
+            const scrollToBottom = () => {
+                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+
+            const handleUpload = async () => {
+                if (!repoUrl) return;
+                setIsUploading(true);
+                try {
+                    const res = await fetch(`${API_URL}/upload`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ repo_url: repoUrl })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        showToast(data.message, 'success');
+                        let name = repoUrl.replace(/\/$/, '').split('/').pop().replace('.git', '');
+                        setRepoName(name);
+                    } else {
+                        showToast(`Error: ${data.detail || 'Failed'}`, 'error');
+                    }
+                } catch (err) {
+                    showToast('Connection error', 'error');
+                } finally {
+                    setIsUploading(false);
+                }
+            };
+
+            const handleSummary = async () => {
+                if (!repoName) return showToast('Upload a repository first', 'error');
+                setIsGenerating(true);
+                try {
+                    const res = await fetch(`${API_URL}/summary`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ repo_name: repoName })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        setSummary(data.summary);
+                        showToast('Summary generated', 'success');
+                    } else {
+                        showToast('Failed to generate summary', 'error');
+                    }
+                } catch (err) {
+                    showToast('Connection error', 'error');
+                } finally {
+                    setIsGenerating(false);
+                }
+            };
+
+            const handleAsk = async (e) => {
+                e.preventDefault();
+                if (!input.trim() || !repoName) {
+                    if (!repoName) showToast('Please upload a repository first', 'error');
+                    return;
+                }
+
+                const userQuery = input.trim();
+                setInput('');
+                const newMessages = [...messages, { role: 'user', content: userQuery }];
+                setMessages(newMessages);
+                setIsAsking(true);
+
+                try {
+                    const history = messages.map(m => ({ role: m.role, content: m.content }));
+                    const res = await fetch(`${API_URL}/ask`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            repo_name: repoName,
+                            query: userQuery,
+                            history: history,
+                            top_k: 5
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    if (res.ok) {
+                        setMessages([...newMessages, { 
+                            role: 'assistant', 
+                            content: data.answer,
+                            citations: data.citations
+                        }]);
+                    } else {
+                        showToast('Failed to get answer', 'error');
+                    }
+                } catch (err) {
+                    showToast('Connection error', 'error');
+                } finally {
+                    setIsAsking(false);
+                }
+            };
+
+            return (
+                <div className="container">
+                    <div className={`toast ${toast.show ? 'show' : ''} ${toast.type}`}>
+                        {toast.message}
+                    </div>
+                    
+                    <div className="sidebar">
+                        <div className="header-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h6z"/><path d="M12 10a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h6z"/><path d="M12 18a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h6z"/><path d="M22 6h-6"/><path d="M22 14h-6"/><path d="M22 22h-6"/></svg>
+                            CodebaseAI
+                        </div>
+                        
+                        <div className="card">
+                            <h3>1. Setup Repository</h3>
+                            <input 
+                                type="text" 
+                                placeholder="https://github.com/user/repo" 
+                                value={repoUrl}
+                                onChange={e => setRepoUrl(e.target.value)}
+                            />
+                            <button onClick={handleUpload} disabled={isUploading || !repoUrl}>
+                                {isUploading ? <span className="loader"></span> : 'Upload & Index'}
+                            </button>
+                        </div>
+                        
+                        <div className="card">
+                            <h3>2. Architecture</h3>
+                            <button onClick={handleSummary} disabled={isGenerating || !repoName}>
+                                {isGenerating ? <span className="loader"></span> : 'Generate Summary'}
+                            </button>
+                        </div>
+                        
+                        {repoName && (
+                            <div className="card" style={{marginTop: 'auto', backgroundColor: 'var(--panel-bg)', borderColor: 'var(--accent)'}}>
+                                <h3 style={{color: 'var(--accent)'}}>Active Repo</h3>
+                                <strong>{repoName}</strong>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="main-content">
+                        <div className="chat-container">
+                            {messages.length === 0 && !summary ? (
+                                <div className="empty-state">
+                                    <h2>Welcome to AI Codebase Assistant</h2>
+                                    <p>Upload a repository to start asking questions about the code.</p>
+                                </div>
+                            ) : null}
+                            
+                            {summary && (
+                                <div className="message assistant">
+                                    <div className="avatar assistant">🤖</div>
+                                    <div className="bubble">
+                                        <h4 style={{marginBottom: '10px', color: 'var(--accent)'}}>Architecture Summary</h4>
+                                        <div dangerouslySetInnerHTML={{__html: summary.replace(/\n/g, '<br/>')}} />
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {messages.map((msg, i) => (
+                                <div key={i} className={`message ${msg.role}`}>
+                                    <div className={`avatar ${msg.role}`}>
+                                        {msg.role === 'user' ? 'U' : '🤖'}
+                                    </div>
+                                    <div className={`bubble ${msg.role}`}>
+                                        {msg.content}
+                                        {msg.citations && msg.citations.length > 0 && (
+                                            <div className="citations">
+                                                <strong>Sources:</strong>
+                                                <ul>
+                                                    {msg.citations.map((c, idx) => (
+                                                        <li key={idx}><code>{c.source}</code> (Line {c.line})</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {isAsking && (
+                                <div className="message assistant">
+                                    <div className="avatar assistant">🤖</div>
+                                    <div className="bubble" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                        <span className="loader" style={{borderColor: 'rgba(255,255,255,0.1)', borderTopColor: 'var(--accent)'}}></span>
+                                        Thinking...
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={chatEndRef} />
+                        </div>
+                        
+                        <div className="input-area">
+                            <form className="input-wrapper" onSubmit={handleAsk}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ask a question about the codebase..." 
+                                    value={input}
+                                    onChange={e => setInput(e.target.value)}
+                                />
+                                <button type="submit" disabled={isAsking || !input.trim()}>Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
@@ -35,9 +37,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for the frontend
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to AI Codebase Assistant API"}
+    return FileResponse("frontend/index.html")
 
 @app.get("/health")
 def health_check():
