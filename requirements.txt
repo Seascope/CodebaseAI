@@ -5,6 +5,9 @@ sentence-transformers
 langchain
 langgraph
 langchain-community
+langchain-text-splitters
+langchain-ollama
+chromadb
 GitPython
 pydantic
 python-multipart
