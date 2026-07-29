@@ -26,13 +26,3 @@ ollama run llama3
 python main.py
 ```
 5. Open `http://localhost:8000/` in your browser.
-
-## Resume Bullets
-
-* Built an AI-powered codebase assistant capable of understanding repositories with Retrieval-Augmented Generation (RAG).
-* Implemented semantic code search using vector embeddings and ChromaDB.
-* Developed REST APIs with FastAPI supporting repository indexing and conversational querying.
-* Integrated LLMs with source citations to explain architecture and locate relevant code.
-* Built a dynamic React frontend featuring real-time syntax highlighting, streaming animations, and a modern glassmorphism design.
-
-*Demo GIF and Screenshots coming soon.*
