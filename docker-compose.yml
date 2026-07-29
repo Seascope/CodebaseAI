@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./repos:/app/repos
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
